@@ -35,28 +35,7 @@ void rand_tree_example() {
 	cout << endl << endl;
 }
 
-/*
-  This graph will be used as input for different examples.
-  The result is on the form (nbNodes, edgeList).
-*/
-pair<int, vector< pair<int,int> > > small_graph() {
-	int nbNodes = 8;
-	vector< pair<int,int> > edgeList;
-	edgeList.push_back(make_pair(0, 1));
-	edgeList.push_back(make_pair(0, 2));
-	edgeList.push_back(make_pair(1, 3));
-	edgeList.push_back(make_pair(2, 3));
-	edgeList.push_back(make_pair(3, 4));
-	edgeList.push_back(make_pair(4, 5));
-	edgeList.push_back(make_pair(4, 6));
-	edgeList.push_back(make_pair(5, 7));
-	edgeList.push_back(make_pair(6, 7));
-	return make_pair(nbNodes, edgeList);
-}
-	
-	void rand_spanning_tree_example() {
-	}
-	
+
 int main() {
 	rand_perm_example();
 	rand_parentheses_example();
