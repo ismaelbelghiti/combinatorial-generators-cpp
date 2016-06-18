@@ -9,6 +9,14 @@
 #include <string>
 
 /*
+  Return an integer uniformly drawn from range [mini,maxi]
+*/
+int rand_int(int mini, int maxi) {
+	return rand() % (maxi - mini + 1) + mini;
+}
+
+
+/*
   Return the result of std::random_shuffle on the input vector (which
   is given by value)
 */
@@ -17,6 +25,7 @@ std::vector<T> rand_perm(std::vector<T> v) {
 	std::random_shuffle(v.begin(), v.end());
 	return v;
 }
+
 
 /*
   Return a vector of length 2*nbPairs, where each integer in [0,nbPairs) appears
@@ -51,6 +60,37 @@ std::vector<int> rand_parentheses(int nbPairs) {
 	return res;
 }
 
+
+/*
+  Rand uniformly a spanning tree of the complete graph on vertex
+  set {0,1,..,n-1}. The result is given as a list of edges.
+*/
+std::vector< std::pair<int,int> > rand_tree(int nbNodes) {
+	// we use Prufer encoding
+	std::vector<int> pruferCode;
+	for(int i = 0; i < nbNodes - 2; i++) {
+		pruferCode.push_back(rand_int(0, nbNodes - 1));
+	}
+	pruferCode.push_back(nbNodes - 1);
+
+	std::vector< std::pair<int,int> > resEdges;
+	std::vector<int> nbChildren(nbNodes, 0);
+	for(int i = 0; i < nbNodes - 1; i++) {
+		nbChildren[pruferCode[i]]++;
+	}
+	int posInCode = 0;
+	for(int idNode = 0; idNode < nbNodes - 1; idNode++) {
+		int idCur = idNode;
+		while(idCur <= idNode && nbChildren[idCur] == 0) {
+			int idFather = pruferCode[posInCode];
+			posInCode++;
+			resEdges.push_back(std::make_pair(idCur, idFather));
+			nbChildren[idFather]--;
+			idCur = idFather;
+		}
+	}
+	return resEdges;
+}
 
 
 #endif /* COMBINATORIAL_GENERATORS_H */

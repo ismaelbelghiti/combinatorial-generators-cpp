@@ -25,9 +25,20 @@ void rand_parentheses_example() {
 	cout << endl << endl;
 }
 
+void rand_tree_example() {
+	cout << "rand_tree_example:" << endl;
+	int nbNodes = 6;
+	vector< pair<int,int> > edges = rand_tree(nbNodes);
+	for (int i = 0; i < (int)edges.size(); i++) {
+		cout << "(" << edges[i].first << ","<< edges[i].second << ") ";
+	}
+	cout << endl << endl;
+}
+
 
 int main() {
 	rand_perm_example();
 	rand_parentheses_example();
+	rand_tree_example();
 	return 0;
 }
