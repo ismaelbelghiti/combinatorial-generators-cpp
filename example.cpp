@@ -67,11 +67,84 @@ void rand_spanning_tree_example() {
 	display_edges(treeEdges);
 	cout << endl << endl;
 }
-	
+
+void rand_dfs_tree_example() {
+	cout << "rand_dfs_tree_example:" << endl;
+	pair<int, vector< pair<int,int> > > g = small_graph();
+	int nbNodes = g.first;
+	int idStart = 0;
+	vector< pair<int,int> > edges = g.second;
+	vector< pair<int,int> > treeEdges = rand_dfs_tree(nbNodes, edges, idStart);
+	display_edges(treeEdges);
+	cout << endl << endl;
+}
+
+void rand_bfs_tree_example() {
+	cout << "rand_bfs_tree_example:" << endl;
+	pair<int, vector< pair<int,int> > > g = small_graph();
+	int nbNodes = g.first;
+	int idStart = 0;
+	vector< pair<int,int> > edges = g.second;
+	vector< pair<int,int> > treeEdges = rand_bfs_tree(nbNodes, edges, idStart);
+	display_edges(treeEdges);
+	cout << endl << endl;
+}
+
+void rand_dijkstra_tree_example() {
+	cout << "rand_dijkstra_tree_example:" << endl;
+	pair<int, vector< pair<int,int> > > g = small_graph();
+	int nbNodes = g.first;
+	int idStart = 0;
+	vector< pair<int,int> > edges = g.second;
+	vector< pair<int,int> > treeEdges = rand_dijkstra_tree(nbNodes, edges, idStart);
+	display_edges(treeEdges);
+	cout << endl << endl;
+}
+
+void rand_prim_tree_example() {
+	cout << "rand_prim_tree_example:" << endl;
+	pair<int, vector< pair<int,int> > > g = small_graph();
+	int nbNodes = g.first;
+	int idStart = 0;
+	vector< pair<int,int> > edges = g.second;
+	vector< pair<int,int> > treeEdges = rand_prim_tree(nbNodes, edges, idStart);
+	display_edges(treeEdges);
+	cout << endl << endl;
+}
+
+void rand_hunt_and_kill_tree_example() {
+	cout << "rand_hunt_and_kill_tree_example:" << endl;
+	pair<int, vector< pair<int,int> > > g = small_graph();
+	int nbNodes = g.first;
+	int idStart = 0;
+	vector< pair<int,int> > edges = g.second;
+	vector< pair<int,int> > treeEdges =
+		rand_hunt_and_kill_tree(nbNodes, edges, idStart);
+	display_edges(treeEdges);
+	cout << endl << endl;
+}
+
+void rand_kruskal_tree_example() {
+	cout << "rand_kruskal_tree_example:" << endl;
+	pair<int, vector< pair<int,int> > > g = small_graph();
+	int nbNodes = g.first;
+	vector< pair<int,int> > edges = g.second;
+	vector< pair<int,int> > treeEdges = rand_kruskal_tree(nbNodes, edges);
+	display_edges(treeEdges);
+	cout << endl << endl;
+}
+
+
 int main() {
 	rand_perm_example();
 	rand_parentheses_example();
 	rand_tree_example();
 	rand_spanning_tree_example();
+	rand_dfs_tree_example();
+	rand_bfs_tree_example();
+	rand_dijkstra_tree_example();
+	rand_prim_tree_example();
+	rand_hunt_and_kill_tree_example();
+	rand_kruskal_tree_example();
 	return 0;
 }
