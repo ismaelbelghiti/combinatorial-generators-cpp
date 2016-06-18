@@ -15,6 +15,14 @@ int rand_int(int mini, int maxi) {
 	return rand() % (maxi - mini + 1) + mini;
 }
 
+/*
+  Return a float uniformly drawn from range [mini, maxi]
+*/
+float rand_float(float mini, float maxi) {
+    float x = (float)rand() / (float)RAND_MAX;
+    return mini + x*(maxi-mini);
+}
+
 
 /*
   Return the result of std::random_shuffle on the input vector (which
@@ -68,20 +76,20 @@ std::vector<int> rand_parentheses(int nbPairs) {
 std::vector< std::pair<int,int> > rand_tree(int nbNodes) {
 	// we use Prufer encoding
 	std::vector<int> pruferCode;
-	for(int i = 0; i < nbNodes - 2; i++) {
+	for (int i = 0; i < nbNodes - 2; i++) {
 		pruferCode.push_back(rand_int(0, nbNodes - 1));
 	}
 	pruferCode.push_back(nbNodes - 1);
 
 	std::vector< std::pair<int,int> > resEdges;
 	std::vector<int> nbChildren(nbNodes, 0);
-	for(int i = 0; i < nbNodes - 1; i++) {
+	for (int i = 0; i < nbNodes - 1; i++) {
 		nbChildren[pruferCode[i]]++;
 	}
 	int posInCode = 0;
-	for(int idNode = 0; idNode < nbNodes - 1; idNode++) {
+	for (int idNode = 0; idNode < nbNodes - 1; idNode++) {
 		int idCur = idNode;
-		while(idCur <= idNode && nbChildren[idCur] == 0) {
+		while (idCur <= idNode && nbChildren[idCur] == 0) {
 			int idFather = pruferCode[posInCode];
 			posInCode++;
 			resEdges.push_back(std::make_pair(idCur, idFather));
@@ -103,12 +111,12 @@ std::vector< std::pair<int,int> > rand_tree(int nbNodes) {
 std::vector< std::pair<int,int> > rand_spanning_tree(
 	int nbNodes, std::vector< std::pair<int,int> > edges) {
 	
-	if(nbNodes <= 1) {
+	if (nbNodes <= 1) {
 		return std::vector< std::pair<int,int> >();
 	}
 
 	std::vector< std::vector<int> > neigh(nbNodes, std::vector<int>());
-	for(int iEdge = 0; iEdge < (int)edges.size(); iEdge++) {
+	for (int iEdge = 0; iEdge < (int)edges.size(); iEdge++) {
 		neigh[edges[iEdge].first].push_back(edges[iEdge].second);
 		neigh[edges[iEdge].second].push_back(edges[iEdge].first);
 	}
@@ -119,20 +127,316 @@ std::vector< std::pair<int,int> > rand_spanning_tree(
 	std::vector<int> suiv(nbNodes);
 	std::vector< std::pair<int,int> > resEdges;
 
-	while(nbMarkedNodes < nbNodes) {
+	while (nbMarkedNodes < nbNodes) {
 		int idStart = rand_int(0, nbNodes - 1);
 		int idCur = idStart;
-		while(!marked[idCur]) {
+		while (!marked[idCur]) {
 			int idNeigh = neigh[idCur][rand() % neigh[idCur].size()];
 			suiv[idCur] = idNeigh;
 			idCur = idNeigh;
 		}
 		idCur = idStart;
-		while(!marked[idCur]) {
+		while (!marked[idCur]) {
 			marked[idCur] = true;
 			nbMarkedNodes++;
 			resEdges.push_back(std::make_pair(idCur, suiv[idCur]));
 			idCur = suiv[idCur];
+		}
+	}
+
+	return resEdges;
+}
+
+
+/*
+  Return the spanning tree obtained by a randomized DFS on the graph defined
+  by its number of vertices and its edge list, starting the search from a given
+  start vertex (we assume that the graph is connected and that the vertices are
+  numbered from 0 to nbNodes-1). The result is given as a list of edges.
+*/
+std::vector< std::pair<int,int> > rand_dfs_tree(
+	int nbNodes, std::vector< std::pair<int,int> > edges, int idStart) {
+	
+	std::vector< std::vector<int> > neigh(nbNodes, std::vector<int>());
+	for (int iEdge = 0; iEdge < (int)edges.size(); iEdge++) {
+		neigh[edges[iEdge].first].push_back(edges[iEdge].second);
+		neigh[edges[iEdge].second].push_back(edges[iEdge].first);
+	}
+	for (int idNode = 0; idNode < nbNodes; idNode++) {
+		std::random_shuffle(neigh[idNode].begin(), neigh[idNode].end());
+	}
+
+	std::vector< std::pair<int,int> > resEdges;
+	std::vector<int> idNodeStack;
+	std::vector<int> iNeighStack;
+	std::vector<bool> marked(nbNodes, false);
+	idNodeStack.push_back(idStart);
+	iNeighStack.push_back(0);
+	marked[idStart] = true;
+
+	while (!idNodeStack.empty()) {
+		int idNodeCur = idNodeStack.back();
+		int iNeighCur = iNeighStack.back();
+		if (iNeighCur == (int)neigh[idNodeCur].size()) {
+			idNodeStack.pop_back();
+			iNeighStack.pop_back();
+			continue;
+		}
+		int idNeigh = neigh[idNodeCur][iNeighCur];
+		iNeighStack.back()++;
+		if (!marked[idNeigh]) {
+			marked[idNeigh] = true;
+			idNodeStack.push_back(idNeigh);
+			iNeighStack.push_back(0);
+			resEdges.push_back(std::make_pair(idNodeCur, idNeigh));
+		}
+	}
+	return resEdges;
+}
+
+
+/*
+  Return the spanning tree obtained by a randomized BFS on the graph defined
+  by its number of vertices and its edge list, starting the search from a given
+  start vertex (we assume that the graph is connected and that the vertices are
+  numbered from 0 to nbNodes-1). The result is given as a list of edges.
+*/
+std::vector< std::pair<int,int> > rand_bfs_tree(
+	int nbNodes, std::vector< std::pair<int,int> > edges, int idStart) {
+	
+	std::vector< std::vector<int> > neigh(nbNodes, std::vector<int>());
+	for (int iEdge = 0; iEdge < (int)edges.size(); iEdge++) {
+		neigh[edges[iEdge].first].push_back(edges[iEdge].second);
+		neigh[edges[iEdge].second].push_back(edges[iEdge].first);
+	}
+	for (int idNode = 0; idNode < nbNodes; idNode++) {
+		random_shuffle(neigh[idNode].begin(), neigh[idNode].end());
+	}
+
+	std::vector< std::pair<int,int> > resEdges;
+	std::queue<int> idNodeQueue;
+	std::vector<bool> marked(nbNodes, false);
+	idNodeQueue.push(idStart);
+	marked[idStart] = true;
+	while (!idNodeQueue.empty()) {
+		int idNodeCur = idNodeQueue.front();
+		idNodeQueue.pop();
+		for (int iNeigh = 0; iNeigh < (int)neigh[idNodeCur].size(); iNeigh++) {
+			int idNeigh = neigh[idNodeCur][iNeigh];
+			if (!marked[idNeigh]) {
+				marked[idNeigh] = true;
+				resEdges.push_back(std::make_pair(idNodeCur, idNeigh));
+				idNodeQueue.push(idNeigh);
+			}
+		}
+	}
+	return resEdges;
+}
+
+
+/*
+  Return the spanning tree obtained by a randomized Dijkstra on the graph defined
+  by its number of vertices and its edge list, starting the search from a given
+  start vertex (we assume that the graph is connected and that the vertices are
+  numbered from 0 to nbNodes-1). The result is given as a list of edges.
+*/
+std::vector< std::pair<int,int> > rand_dijkstra_tree(
+	int nbNodes, std::vector< std::pair<int,int> > edges, int idStart) {
+	
+	std::vector< std::vector<int> > neigh(nbNodes, std::vector<int>());
+	for (int iEdge = 0; iEdge < (int)edges.size(); iEdge++) {
+		neigh[edges[iEdge].first].push_back(edges[iEdge].second);
+		neigh[edges[iEdge].second].push_back(edges[iEdge].first);
+	}
+	for (int idNode = 0; idNode < nbNodes; idNode++) {
+		std::random_shuffle(neigh[idNode].begin(), neigh[idNode].end());
+	}
+	std::vector< std::pair<int,int> > resEdges;
+
+	const int INVALID = -1;
+	std::priority_queue< std::pair< float, std::pair<int,int> > > pq;
+	std::vector< bool > visited(nbNodes, false);
+	pq.push(std::make_pair(0.f, std::make_pair(idStart, INVALID)));
+	while (!pq.empty()) {
+		std::pair< float, std::pair<int,int> > cur = pq.top();
+		pq.pop();
+		int idNode = cur.second.first;
+		if (visited[idNode]) {
+			continue;
+		}
+		visited[idNode] = true;
+		float curDist = -cur.first;
+		int idFather = cur.second.second;
+		if (idFather != INVALID) {
+			resEdges.push_back(std::make_pair(idFather, idNode));
+		}
+		for (int iNeigh = 0; iNeigh < (int)neigh[idNode].size(); iNeigh++) {
+			int idNeigh = neigh[idNode][iNeigh];
+			float newDist = curDist + rand_float(0.f, 1.f);
+			pq.push(std::make_pair(-newDist, std::make_pair(idNeigh, idNode)));		
+		}
+	}
+	
+	return resEdges;
+}
+
+
+/*
+  Return the spanning tree obtained by a randomized Prim-like search on the
+  graph defined	 by its number of vertices and its edge list, starting the search
+  from a given	start vertex (we assume that the graph is connected and that
+  the vertices are numbered from 0 to nbNodes-1). The result is given as a list
+  of edges.
+*/
+std::vector< std::pair<int,int> > rand_prim_tree(
+	int nbNodes, std::vector< std::pair<int,int> > edges, int idStart) {
+	
+	std::vector< std::vector<int> > neigh(nbNodes, std::vector<int>());
+	for (int iEdge = 0; iEdge < (int)edges.size(); iEdge++) {
+		neigh[edges[iEdge].first].push_back(edges[iEdge].second);
+		neigh[edges[iEdge].second].push_back(edges[iEdge].first);
+	}
+	for (int idNode = 0; idNode < nbNodes; idNode++) {
+		std::random_shuffle(neigh[idNode].begin(), neigh[idNode].end());
+	}
+	
+	const int INVALID = -1;
+	std::vector< std::pair<int,int> > resEdges;
+	std::vector< std::pair<int,int> > idActiveAndIdFatherNodes;
+	std::vector<bool> marked(nbNodes,false);
+	idActiveAndIdFatherNodes.push_back(std::make_pair(idStart, INVALID));
+	while (!idActiveAndIdFatherNodes.empty()) {
+		int iRand = rand_int(0, (int)idActiveAndIdFatherNodes.size() - 1);
+		std::swap(idActiveAndIdFatherNodes[iRand], idActiveAndIdFatherNodes.back());
+		int idNode = idActiveAndIdFatherNodes.back().first;
+		int idFather = idActiveAndIdFatherNodes.back().second;
+		idActiveAndIdFatherNodes.pop_back();
+
+		if (marked[idNode]) {
+			continue;
+		}
+		marked[idNode] = true;
+		if (idFather != INVALID) {
+			resEdges.push_back(std::make_pair(idFather,idNode));
+		}
+	
+		for (int iNeigh = 0; iNeigh < (int)neigh[idNode].size(); iNeigh++) {
+			int idNeigh = neigh[idNode][iNeigh];
+			if (!marked[idNeigh]) {
+				idActiveAndIdFatherNodes.push_back(std::make_pair(idNeigh, idNode));
+			}
+		}
+	}
+	return resEdges;
+}
+
+
+
+/*
+  Return the spanning tree obtained by a hunt and kill process on the
+  graph defined	 by its number of vertices and its edge list, starting the search
+  from a given	start vertex (we assume that the graph is connected and that
+  the vertices are numbered from 0 to nbNodes-1). The result is given as a list
+  of edges.
+*/
+std::vector< std::pair<int,int> > rand_hunt_and_kill_tree(
+	int nbNodes, std::vector< std::pair<int,int> > edges, int idStart) {
+	
+	std::vector< std::vector<int> > neigh(nbNodes, std::vector<int>());
+	for (int iEdge = 0; iEdge < (int)edges.size(); iEdge++) {
+		neigh[edges[iEdge].first].push_back(edges[iEdge].second);
+		neigh[edges[iEdge].second].push_back(edges[iEdge].first);
+	}
+	for (int idNode = 0; idNode < nbNodes; idNode++) {
+		std::random_shuffle(neigh[idNode].begin(), neigh[idNode].end());
+	}
+
+	const int INVALID = -1;
+	std::vector< std::pair<int,int> > resEdges;
+	std::vector< std::pair<int,int> > idActiveAndIdFatherNodes;
+	std::vector<bool> marked(nbNodes, false);
+	idActiveAndIdFatherNodes.push_back(std::make_pair(idStart, INVALID));
+	while (!idActiveAndIdFatherNodes.empty()) {
+		int iRand = rand_int(0, (int)idActiveAndIdFatherNodes.size() - 1);
+		std::swap(idActiveAndIdFatherNodes[iRand], idActiveAndIdFatherNodes.back());
+		int idNode = idActiveAndIdFatherNodes.back().first;
+		int idFather = idActiveAndIdFatherNodes.back().second;
+		idActiveAndIdFatherNodes.pop_back();
+
+		if (marked[idNode]) {
+			continue;
+		}
+		marked[idNode] = true;
+		if (idFather != INVALID) {
+			resEdges.push_back(std::make_pair(idFather, idNode));
+		}
+		while (true) {
+			marked[idNode] = true;
+			int idNext = idNode;
+			for (int iNeigh = 0; iNeigh < (int)neigh[idNode].size(); iNeigh++) {
+				int idNeigh = neigh[idNode][iNeigh];
+				if (!marked[idNeigh]) {
+					idActiveAndIdFatherNodes.push_back(
+						std::make_pair(idNeigh,idNode));
+					idNext = idNode;
+				}
+			}
+			if (idNext == idNode) {
+				break;
+			}
+			resEdges.push_back(std::make_pair(idNode, idNext));
+			idNode = idNext;
+		}
+	}
+	return resEdges;
+}
+
+
+/*
+  Return the spanning tree obtained through a randomized Kruskal-like process on the
+  graph defined	 by its number of vertices and its edge list (we assume that the
+  graph is connected and that the vertices are numbered from 0 to nbNodes-1).
+  The result is given as a list of edges.
+*/
+std::vector< std::pair<int,int> > rand_kruskal_tree(
+	int nbNodes, std::vector< std::pair<int,int> > edges) {
+
+	std::vector< std::pair<int,int> > resEdges;
+	std::vector<int> idGroup;
+	for (int iGroup = 0; iGroup < nbNodes; iGroup++) {
+		idGroup.push_back(iGroup);
+	}
+	std::vector< std::vector<int> > elementOfGroup(nbNodes, std::vector<int>());
+	for (int idNode = 0; idNode < nbNodes; idNode++) {
+		elementOfGroup[idNode].push_back(idNode);
+	}
+	
+	int maxGroupSize = 1;
+	while (maxGroupSize < nbNodes && !edges.empty()) {
+		int iEdge = rand_int(0, (int)edges.size() - 1);
+		std::swap(edges[iEdge], edges.back());
+		std::pair<int,int> edge = edges.back();
+		edges.pop_back();
+	
+		int iGroup1 = idGroup[edge.first], iGroup2 = idGroup[edge.second];
+		if (iGroup1 == iGroup2) {
+			continue;
+		}
+	
+		resEdges.push_back(edge);
+		if (elementOfGroup[iGroup1].size() > elementOfGroup[iGroup2].size()) {
+			std::swap(iGroup1, iGroup2);
+		}
+		std::vector<int> & g1 = elementOfGroup[iGroup1];
+		std::vector<int> & g2 = elementOfGroup[iGroup2];
+		for (int i = 0; i < (int)g1.size(); i++) {
+			int idNode = g1[i];
+			g2.push_back(idNode);
+			idGroup[idNode] = iGroup2;
+		}
+		g1.clear();
+		if ((int)g2.size() > maxGroupSize) {
+			maxGroupSize = (int)g2.size();
 		}
 	}
 
