@@ -38,8 +38,8 @@ std::vector<int> rand_parentheses(int nbPairs) {
 	std::vector<int> res;
 	std::vector<int> idStack;
 	int cur = 0;
-	for(int i = 0; i < 2 * nbPairs; i++) {
-		if(signs[i] == 1) {
+	for (int i = 0; i < 2 * nbPairs; i++) {
+		if (signs[i] == 1) {
 			idStack.push_back(cur);
 			cur++;
 			res.push_back(idStack.back());
